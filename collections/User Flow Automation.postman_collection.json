@@ -1,0 +1,283 @@
+{
+  "info": {
+    "_postman_id": "60e24e0d-cb30-45d1-b956-11e1b3688307",
+    "name": "User Flow Automation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53447738"
+  },
+  "item": [
+    {
+      "name": "Login(extract token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "//script will extract token from response and store it in environment variable token\r",
+              "pm.test(\"Response has 'token'\",function(){\r",
+              "    var jsonData = pm.response.json(); //storing the json data response in json data\r",
+              "    pm.expect(jsonData).to.have.property('token');\r",
+              "    pm.environment.set(\"token\", jsonData.token); //set token in environment variable\r",
+              "    console.log('token value is:', pm.environment.get(\"token\"));\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "//adding the test start time so we can know how long we have left before the token expires and stores it in enviornment variable in HH:mm:ss format\r",
+              "\r",
+              "(function () {\r",
+              "    const pad = (n) => String(n).padStart(2, '0');\r",
+              "    const d = new Date();\r",
+              "    const month = pad(d.getMonth() + 1); //mm\r",
+              "    const day = pad(d.getDate()); //dd\r",
+              "    const year = pad(d.getFullYear()) //yyyy\r",
+              "    const hours = pad(d.getHours()); //hh   \r",
+              "    const minutes = pad(d.getMinutes()); //mm\r",
+              "    const seconds = pad(d.getSeconds()); //ss   \r",
+              "    const formatted = `${month}-${day}-${year} ${hours}:${minutes}:${seconds}`;\r",
+              "    pm.environment.set(\"TimeNow\", formatted);\r",
+              "    console.log(\"pre-req: Time now =\", pm.environment.get(\"TimeNow\"));\r",
+              "})();\r",
+              "// pm.environment.set(\"TimeNow\",new Date().toISOString());\r",
+              "// console.log(\"Run started at: \", pm.environment.get(\"runStartTime\"))"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "reqres_533991940e4947cfa2d49c5687352503",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"eve.holt@reqres.in\",\r\n    \"password\": \"cityslicka\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/login",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// this script will extract the userID from the response and store in the enviornment variable \r",
+              "\r",
+              "pm.test(\"Valid JSON response and contains 'id'\",function(){\r",
+              "    let body;\r",
+              "    try{\r",
+              "        body = pm.response.json(); //setting body as the json response\r",
+              "    }catch(e){\r",
+              "        pm.expect.fail(\"Response is not valid JSON:\" + e.message);\r",
+              "    }\r",
+              "    pm.expect(body).to.be.an('object'); // checking that the response is an object\r",
+              "    pm.expect(body,\"Response body should have 'id'\").to.have.property('id'); // checking that the response has an 'id' property\r",
+              "\r",
+              "    const idVal = body.id; \r",
+              "    pm.environment.set(\"userID\", String(idVal));//setting the userID in the environment variable\r",
+              "    console.log(\"userID is :\", pm.environment.get('userID'));\r",
+              "\r",
+              "    //sanity check\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([200,201]);\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "reqres_533991940e4947cfa2d49c5687352503",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"eve.holt@reqres.in\",\r\n    \"password\": \"pistol\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/register",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "reqres_533991940e4947cfa2d49c5687352503",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"Mpiyakhe\",\r\n    \"job\": \"zion resident\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/users/{{userID}}",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{userID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204\", function () {\r",
+              "    pm.response.to.have.status(204);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "reqres_533991940e4947cfa2d49c5687352503",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/api/users/{{userID}}",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{userID}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
